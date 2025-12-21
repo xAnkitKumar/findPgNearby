@@ -1,0 +1,271 @@
+.booking-form-card {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  
+  .booking-form-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+  }
+  
+  .booking-form-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 400;
+  }
+  
+  .booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+  }
+  
+  .input-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .input-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+  }
+  
+  .label-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #6b7280;
+  }
+  
+  .booking-input {
+    min-height: 44px;
+    border-radius: 0.75rem;
+    border: 1px solid #d1d5db;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+  }
+  
+  .booking-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+  
+  .booking-input::placeholder {
+    color: #9ca3af;
+  }
+  
+  .booking-textarea {
+    border-radius: 0.75rem;
+    border: 1px solid #d1d5db;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    resize: vertical;
+    min-height: 100px;
+    transition: all 0.2s ease;
+  }
+  
+  .booking-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+  }
+  
+  .booking-textarea::placeholder {
+    color: #9ca3af;
+  }
+  
+  /* Payment Methods */
+  .payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .payment-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .payment-option:hover {
+    border-color: #d1d5db;
+    background: #f9fafb;
+  }
+  
+  .payment-option[data-state="checked"] {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  
+  .payment-radio {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  .payment-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    cursor: pointer;
+  }
+  
+  .payment-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #4b5563;
+  }
+  
+  .payment-option[data-state="checked"] .payment-icon {
+    color: #3b82f6;
+  }
+  
+  .payment-name {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+  }
+  
+  .payment-desc {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.125rem;
+  }
+  
+  /* Form Actions */
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+  }
+  
+  .submit-button {
+    min-height: 56px;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  .submit-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+  }
+  
+  .submit-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .booking-note {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+    line-height: 1.5;
+  }
+  
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .booking-form-card {
+      border-radius: 0.75rem;
+      margin: 0 -1rem;
+      box-shadow: none;
+      border-left: none;
+      border-right: none;
+    }
+  
+    .booking-form {
+      gap: 1.5rem;
+    }
+  
+    .input-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  
+    .booking-form-title {
+      font-size: 1.125rem;
+      padding: 1rem 1rem 0;
+    }
+  
+    .booking-form-subtitle {
+      padding: 0 1rem;
+    }
+  
+    .booking-input,
+    .booking-textarea {
+      min-height: 40px;
+      font-size: 0.8125rem;
+    }
+  
+    .payment-option {
+      padding: 0.75rem;
+    }
+  
+    .payment-name {
+      font-size: 0.8125rem;
+    }
+  
+    .payment-desc {
+      font-size: 0.6875rem;
+    }
+  
+    .submit-button {
+      min-height: 48px;
+      font-size: 0.9375rem;
+    }
+  
+    .form-actions {
+      padding: 1rem;
+    }
+  }
+  
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .input-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
