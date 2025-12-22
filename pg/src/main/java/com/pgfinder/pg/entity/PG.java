@@ -1,12 +1,21 @@
 package com.pgfinder.pg.entity;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "pgs")
@@ -20,15 +29,19 @@ public class PG {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Basic details
+    /* ================= BASIC DETAILS ================= */
+
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String address;
 
     @Column(nullable = false)
     private String city;
+
+    @Column(nullable = false)
+    private String area; // Whitefield, Bellandur, etc.
 
     @Column(nullable = false)
     private String state;
@@ -36,27 +49,69 @@ public class PG {
     @Column(nullable = false)
     private String pincode;
 
-    // Geolocation
+    @Enumerated(EnumType.STRING)
+    private PgGender gender; // MEN, WOMEN, UNISEX
+
+    /* ================= GEO ================= */
+
     private Double latitude;
     private Double longitude;
 
-    // Pricing
+    /* ================= PRICING ================= */
+
     private Double pricePerMonth;
 
-    // Owner reference (no direct User entity dependency)
-    @Column(nullable = false)
-    private Long ownerId;  // store owner’s ID, fetched via User Service API
+    private Boolean shortStayEnabled = false;
+    private Double pricePerDay; // used only if short stay enabled
 
-    // Amenities (simple fields for MVP)
+    /* ================= OCCUPANCY ================= */
+
+    private Integer totalBeds;
+    private Integer availableBeds;
+
+    /* ================= OWNER ================= */
+
+    @Column(nullable = false)
+    private Long ownerId;
+
+    /* ================= AMENITIES (MVP) ================= */
+
     private Boolean wifi;
     private Boolean food;
     private Boolean laundry;
     private Boolean parking;
     private Boolean ac;
 
-    // Audit fields
+    /* ================= STATUS ================= */
+
+    @Enumerated(EnumType.STRING)
+    private PgStatus status; // ACTIVE, INACTIVE
+
+    /* ================= AUDIT ================= */
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    public void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (status == null) status = PgStatus.ACTIVE;
+    }
 
+    @PreUpdate
+    public void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+    public enum PgGender {
+        MEN,
+        WOMEN,
+        UNISEX
+    }
+    public enum PgStatus {
+        ACTIVE,
+        INACTIVE
+    }
+    
+    
 }

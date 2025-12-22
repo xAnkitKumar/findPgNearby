@@ -1,145 +1,175 @@
 package com.pgfinder.pg.service.impl;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.pgfinder.pg.dto.PgDetailsResponse;
+import com.pgfinder.pg.dto.PgImageResponse;
+import com.pgfinder.pg.dto.PgListResponse;
 import com.pgfinder.pg.entity.PG;
+import com.pgfinder.pg.entity.PgImage;
+import com.pgfinder.pg.repository.PgImageRepository;
 import com.pgfinder.pg.repository.PgRepository;
 import com.pgfinder.pg.service.PgService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class PgServiceImpl implements PgService {
 
-    @Autowired
-    private PgRepository pgRepository;
+    private final PgRepository pgRepository;
+    private final PgImageRepository imageRepository;
 
     @Override
-    public PG createPG(PG pg) {
-        pg.setCreatedAt(LocalDateTime.now());
-        pg.setUpdatedAt(LocalDateTime.now());
-        return pgRepository.save(pg);
+    @Transactional(readOnly = true)
+    public PgDetailsResponse getPgDetails(Long pgId) {
+        PG pg = pgRepository.findById(pgId)
+            .orElseThrow(() -> new RuntimeException("PG not found"));
+
+        List<PgImage> images = imageRepository.findByPgIdOrderBySortOrderAsc(pgId);
+
+        PgDetailsResponse response = new PgDetailsResponse();
+
+        response.setId(pg.getId());
+        response.setName(pg.getName());
+        response.setAddress(pg.getAddress());
+        response.setCity(pg.getCity());
+        response.setArea(pg.getArea());
+        response.setState(pg.getState());
+        response.setPincode(pg.getPincode());
+
+        response.setGender(pg.getGender().name());
+
+        response.setLatitude(pg.getLatitude());
+        response.setLongitude(pg.getLongitude());
+
+        response.setPricePerMonth(pg.getPricePerMonth());
+        response.setShortStayEnabled(pg.getShortStayEnabled());
+        response.setPricePerDay(pg.getPricePerDay());
+
+        response.setTotalBeds(pg.getTotalBeds());
+        response.setAvailableBeds(pg.getAvailableBeds());
+
+        response.setWifi(pg.getWifi());
+        response.setFood(pg.getFood());
+        response.setLaundry(pg.getLaundry());
+        response.setParking(pg.getParking());
+        response.setAc(pg.getAc());
+
+        response.setStatus(pg.getStatus().name());
+
+        response.setImages(
+            images.stream().map(img -> {
+                PgImageResponse imgDto = new PgImageResponse();
+                imgDto.setId(img.getId());
+                imgDto.setImageUrl(img.getImageUrl());
+                imgDto.setIsPrimary(img.getIsPrimary());
+                imgDto.setSortOrder(img.getSortOrder());
+                return imgDto;
+            }).toList()
+        );
+
+        return response;
     }
 
     @Override
-    public List<PG> getAllPGs() {
-        return pgRepository.findAll();
+    @Transactional(readOnly = true)
+    public Page<PgListResponse> getAllPgs(int page, int size) {
+        Page<PG> pgPage = pgRepository.findAll(PageRequest.of(page, size));
+        
+        // Get all PG IDs from current page
+        List<Long> pgIds = pgPage.getContent().stream()
+            .map(PG::getId)
+            .collect(Collectors.toList());
+        
+        // Fetch ALL images for all PGs in the page
+        List<PgImage> allImages = imageRepository.findByPgIdInOrderBySortOrderAsc(pgIds);
+        
+        // Group images by PG ID
+        Map<Long, List<PgImage>> imagesByPgId = allImages.stream()
+            .collect(Collectors.groupingBy(PgImage::getPgId));
+        
+        return pgPage.map(pg -> convertToPgListResponse(pg, imagesByPgId.get(pg.getId())));
     }
-
+    
     @Override
-    public Optional<PG> getPGById(Long id) {
-        return pgRepository.findById(id);
+    @Transactional(readOnly = true)
+    public Page<PgListResponse> getPgsByCity(String city, int page, int size) {
+        Page<PG> pgPage = pgRepository.findByCityIgnoreCase(city, PageRequest.of(page, size));
+        
+        // Get all PG IDs from current page
+        List<Long> pgIds = pgPage.getContent().stream()
+            .map(PG::getId)
+            .collect(Collectors.toList());
+        
+        // Fetch ALL images for all PGs in the page
+        List<PgImage> allImages = imageRepository.findByPgIdInOrderBySortOrderAsc(pgIds);
+        
+        // Group images by PG ID
+        Map<Long, List<PgImage>> imagesByPgId = allImages.stream()
+            .collect(Collectors.groupingBy(PgImage::getPgId));
+        
+        return pgPage.map(pg -> convertToPgListResponse(pg, imagesByPgId.get(pg.getId())));
     }
-
-    @Override
-    public List<PG> getPGsByOwnerId(Long ownerId) {
-        return pgRepository.findByOwnerIdOrderByCreatedAtDesc(ownerId);
-    }
-
-    @Override
-    public List<PG> getPGsByLocation(String location) {
-        return pgRepository.findByLocationContainingIgnoreCase(location);
-    }
-
-    @Override
-    public List<PG> getPGsByLocationAndBudget(String location, Double minBudget, Double maxBudget) {
-        return pgRepository.findByLocationAndBudget(location, minBudget, maxBudget);
-    }
-
-    @Override
-    public List<PG> getPGsByBudgetRange(Double minBudget, Double maxBudget) {
-        return pgRepository.findByRentBetweenOrderByRentAsc(minBudget, maxBudget);
-    }
-
-    @Override
-    public List<PG> getAvailablePGs() {
-        return pgRepository.findByAvailableTrueOrderByCreatedAtDesc();
-    }
-
-    @Override
-    public List<PG> getAvailablePGsByLocation(String location) {
-        return pgRepository.findByLocationContainingIgnoreCaseAndAvailableTrueOrderByRentAsc(location);
-    }
-
-    @Override
-    public List<PG> getPGsByCity(String city) {
-        return pgRepository.findByLocationContainingIgnoreCase(city);
-    }
-
-    @Override
-    public PG updatePG(Long id, PG pgDetails) {
-        Optional<PG> optionalPG = pgRepository.findById(id);
-        if (optionalPG.isPresent()) {
-            PG pg = optionalPG.get();
-            if (pgDetails.getName() != null) {
-                pg.setName(pgDetails.getName());
-            }
-            if (pgDetails.getAddress() != null) {
-                pg.setAddress(pgDetails.getAddress());
-            }
-            if (pgDetails.getCity() != null) {
-                pg.setCity(pgDetails.getCity());
-            }
-            if (pgDetails.getState() != null) {
-                pg.setState(pgDetails.getState());
-            }
-            if (pgDetails.getPincode() != null) {
-                pg.setPincode(pgDetails.getPincode());
-            }
-            if (pgDetails.getLatitude() != null) {
-                pg.setLatitude(pgDetails.getLatitude());
-            }
-            if (pgDetails.getLongitude() != null) {
-                pg.setLongitude(pgDetails.getLongitude());
-            }
-            if (pgDetails.getPricePerMonth() != null) {
-                pg.setPricePerMonth(pgDetails.getPricePerMonth());
-            }
-            if (pgDetails.getWifi() != null) {
-                pg.setWifi(pgDetails.getWifi());
-            }
-            if (pgDetails.getFood() != null) {
-                pg.setFood(pgDetails.getFood());
-            }
-            if (pgDetails.getLaundry() != null) {
-                pg.setLaundry(pgDetails.getLaundry());
-            }
-            if (pgDetails.getParking() != null) {
-                pg.setParking(pgDetails.getParking());
-            }
-            if (pgDetails.getAc() != null) {
-                pg.setAc(pgDetails.getAc());
-            }
-            pg.setUpdatedAt(LocalDateTime.now());
-            return pgRepository.save(pg);
-        } else {
-            throw new RuntimeException("PG not found with id: " + id);
+    
+    private PgListResponse convertToPgListResponse(PG pg, List<PgImage> images) {
+        PgListResponse dto = new PgListResponse();
+        
+        // Basic info
+        dto.setId(pg.getId());
+        dto.setName(pg.getName());
+        dto.setCity(pg.getCity());
+        dto.setArea(pg.getArea());
+        dto.setGender(pg.getGender().name());
+        
+        // Pricing
+        dto.setPricePerMonth(pg.getPricePerMonth());
+        dto.setShortStayEnabled(pg.getShortStayEnabled());
+        dto.setPricePerDay(pg.getPricePerDay());
+        
+        // Availability
+        dto.setTotalBeds(pg.getTotalBeds());
+        dto.setAvailableBeds(pg.getAvailableBeds());
+        dto.setStatus(pg.getStatus().name());
+        
+        // Set all images
+        if (images != null && !images.isEmpty()) {
+            List<PgImageResponse> imageResponses = images.stream()
+                .map(img -> {
+                    PgImageResponse imgDto = new PgImageResponse();
+                    imgDto.setId(img.getId());
+                    imgDto.setImageUrl(img.getImageUrl());
+                    imgDto.setIsPrimary(img.getIsPrimary());
+                    imgDto.setSortOrder(img.getSortOrder());
+                    return imgDto;
+                })
+                .collect(Collectors.toList());
+            dto.setImages(imageResponses);
+            
+            // Set primary image URL for backward compatibility
+            images.stream()
+                .filter(PgImage::getIsPrimary)
+                .findFirst()
+                .ifPresentOrElse(
+                    primaryImage -> dto.setPrimaryImageUrl(primaryImage.getImageUrl()),
+                    () -> dto.setPrimaryImageUrl(images.get(0).getImageUrl())
+                );
         }
+        
+        // Set amenities
+        dto.setWifi(pg.getWifi());
+        dto.setFood(pg.getFood());
+        dto.setLaundry(pg.getLaundry());
+        dto.setParking(pg.getParking());
+        dto.setAc(pg.getAc());
+        
+        return dto;
     }
-
-    @Override
-    public void deletePG(Long id) {
-        if (!pgRepository.existsById(id)) {
-            throw new RuntimeException("PG not found with id: " + id);
-        }
-        pgRepository.deleteById(id);
-    }
-
-    @Override
-    public List<PG> searchPGsByAmenity(String amenity) {
-        return pgRepository.findByAmenitiesContainingIgnoreCase(amenity);
-    }
-
-    @Override
-    public long countAvailablePGs() {
-        return pgRepository.countByAvailableTrue();
-    }
-
-    @Override
-    public long countPGsByOwner(Long ownerId) {
-        return pgRepository.countByOwnerId(ownerId);
-    }
-
 }
